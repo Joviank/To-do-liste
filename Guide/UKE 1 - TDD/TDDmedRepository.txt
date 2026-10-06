@@ -1,0 +1,56 @@
+1. Lag en Model
+    Opprett en mappe:
+    TaskService/Models
+
+    Opprett:
+    TaskItem.cs
+
+2. Lag en repository
+    Opprett en mappe:
+    TaskService/Repository
+
+    Opprett:
+    ITaskRepository.cs
+    
+3. Lag en Fake Repository
+    Vi trenger en enkel implementasjon av repositoryet som kan brukes under testing.
+
+    Opprett:
+    TaskService/Repository/FakeTaskRepository.cs
+
+    Hvorfor Fake Repository?
+    Vi ønsker å kunne teste TaskService uten å være avhengig av en database.
+
+4. Bruk repositoryet i TaskService
+    TaskService skal ikke lagre oppgavene direkte i en List.
+
+
+5. Sjekk at testene bruker FakeTaskRepository
+    var repository = new FakeTaskRepository();
+    var service = new TaskService(repository);
+
+    Vi kan nå teste TaskService uten database.
+
+
+6. Kjør testene
+    Kjør:
+    dotnet test
+---------------------------------------------------
+Filstruktur:
+
+TaskServiceTDD
+│
+├─ TaskServiceTDD.sln
+│
+├─ TaskService
+│   ├─ Repository
+│   │   ├─ FakeTaskRepository.cs
+│   │   └─ ITaskRepository.cs
+│   ├─ Models
+│   │   └─ TaskItem.cs.cs
+│   ├─ TaskService.cs
+│   └─ TaskService.csproj
+│
+└─ TaskService.Tests
+    ├─ TaskServiceTests.cs
+    └─ TaskService.Tests.csproj
