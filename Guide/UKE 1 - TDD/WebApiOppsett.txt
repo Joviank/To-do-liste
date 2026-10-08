@@ -1,0 +1,98 @@
+Hvordan sette opp webapi med scalar
+
+1. Lag Web API
+    Kjør:
+    dotnet new webapi -n TaskService.Api
+
+2. Legg API-et til i solution
+    Kjør:
+    dotnet sln add TaskService.Api/TaskService.Api.csproj
+
+3. Koble API-et med Core
+    Kjør:
+    dotnet add TaskService.Api reference TaskService.Core/TaskService.Core.csproj
+
+4. Installer Scalar
+    Gå inn i API-prosjektet:
+    cd TaskService.Api
+
+    Kjør:
+    dotnet add package Scalar.AspNetCore
+
+5. Sett opp OpenAPI og Scalar
+    Åpne Program.cs og legg til øverst:
+    using Scalar.AspNetCore;
+
+    Pass på at du har: builder.Services.AddOpenApi();
+    Hvis den ikke allerede finnes.
+
+    Legg til:
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+        app.MapScalarApiReference();
+    }
+
+6. Legg til Controllers
+    I Program.cs skal du ha:
+    builder.Services.AddControllers();
+
+    Og etter 
+    var app = builder.Build();
+    app.MapControllers();
+
+7. Husk å legg til DI for Core i Program.cs:
+using TaskService.Core.Repository;
+
+builder.Services.AddSingleton
+
+
+8. Lag Controller
+    Lag en mappe inne i TaskService.Api:
+    TaskService.Api/Controllers
+
+    Opprett deretter:
+    TaskController.cs
+
+
+    Strukturen skal nå være:
+
+    TaskServiceTDD
+    │
+    ├── TaskService.Core
+    │   ├── Repository
+    │   │   ├── FakeTaskRepository.cs
+    │   │   └── ITaskRepository.cs
+    │   │
+    │   ├── TaskItem.cs
+    │   ├── TaskService.cs
+    │   └── TaskService.Core.csproj
+    │
+    ├── TaskService.Tests
+    │   ├── TaskServiceTests.cs
+    │   └── TaskService.Tests.csproj
+    │
+    ├── TaskService.Api
+    │   ├── Controllers
+    │   │   └── TaskController.cs
+    │   │
+    │   ├── Program.cs
+    │   ├── appsettings.json
+    │   └── TaskService.Api.csproj
+    │
+    └── TaskServiceTDD.sln
+
+
+9. Start prosjektet
+    Kjør:
+    dotnet run
+
+10. Åpne Scalar
+    Legg til:
+    /scalar
+
+    Eksempel:
+    http://localhost:5000/scalar
+
+    Bruk portnummeret som står i din egen terminal eller sjekk appsettings.js

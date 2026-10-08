@@ -71,4 +71,16 @@ public class TaskServiceTest
         // Assert
         Assert.Empty(service.GetTasks());
     }
+    [Fact]
+    public async Task HTTPHealth_ReturnsOk()
+    {
+        // Arrange
+        var client = new HttpClient();
+    
+        // Act
+        var response = await client.GetAsync("http://localhost:5010/health");
+    
+        // Assert
+        Assert.True(response.IsSuccessStatusCode);
+    }
 }
