@@ -1,6 +1,7 @@
 namespace TaskService.Api.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
+using TaskService.Api.DTO;
 
 [ApiController]
 [Route("tasks")]
@@ -20,9 +21,9 @@ public class TaskController : ControllerBase
     }
 
     [HttpPost]
-    public TaskItem AddTask(string title)
+    public TaskItem AddTask([FromBody]CreateTaskRequest request)
     {
-        return taskManager.AddTask(title);
+        return taskManager.AddTask(request.Title);
     }
 
     [HttpPatch("{id}/complete")]
