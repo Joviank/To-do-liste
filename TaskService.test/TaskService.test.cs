@@ -78,7 +78,7 @@ public class TaskServiceTest
         var client = new HttpClient();
     
         // Act
-        var response = await client.GetAsync("http://localhost:5010/health");
+        var response = await client.GetAsync("http://localhost:8080/health");
     
         // Assert
         Assert.True(response.IsSuccessStatusCode);
