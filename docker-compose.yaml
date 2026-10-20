@@ -1,23 +1,39 @@
 services:
+  traefik:
+    image: traefik:v3
+    ports:
+      - "80:80"
+      - "8081:8080"
+    volumes:
+      # Lar Traefik oppdage Docker-containere
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Traefik-konfigurasjonen
+      - ./traefik/Traefik.yml:/etc/traefik/traefik.yml:ro
+
   api:
     build:
       context: .
       dockerfile: TaskService.Api/Dockerfile
 
-    ports:
-      - "8080:80"
-
     restart: on-failure
+
     depends_on:
       db:
         condition: service_healthy
 
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Host=db;Port=5432;Database=tasks;Username=postgres;Password=postgres;
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=tasks;Username=postgres;Password=postgres"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=80"
 
   db:
     image: postgres:16
+
     environment:
       POSTGRES_DB: tasks
       POSTGRES_USER: postgres
@@ -38,12 +54,19 @@ services:
   pgadmin:
     image: dpage/pgadmin4
 
-    ports:
-      - "5050:80"
-
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@kh.com
       PGADMIN_DEFAULT_PASSWORD: admin
+
+    # Valgfri direkte tilgang utenom Traefik
+    ports:
+      - "5050:80"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost`)"
+      - "traefik.http.routers.pgadmin.entrypoints=web"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
 
 volumes:
   postgres_data:

@@ -10,7 +10,7 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? Environment.GetEnvironmentVariable("ConnectionString_Default");
 
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 builder.Services.AddHealthChecks();
 
 builder.Services.AddDbContext<TaskDbContext>( options =>
@@ -26,6 +26,15 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 app.MapControllers();
+
+// For frontend (Razor Pages)
+app.UseStaticFiles();
+app.UseRouting();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+// For frontend (Razor pages)
+
 app.MapHealthChecks("/health");
 app.Urls.Add("http://0.0.0.0:80");
 
