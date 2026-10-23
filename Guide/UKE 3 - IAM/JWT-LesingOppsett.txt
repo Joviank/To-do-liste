@@ -1,0 +1,93 @@
+Scalar og JWT-tokenlesing
+
+Vi skal bruke Separation of Concerns ved å skille mellom
+- controlleren: håndterer HTTP-forespørsler
+- servicen: håndterer lesing av JWT-tokenet.
+
+Filstruktur guide:
+TaskService.Api/
+├── Controllers/
+│   └── AuthController.cs (NY)
+├── Models/
+│   └── TokenInfo.cs (NY)
+├── Services/
+│   ├── ITokenReader.cs (NY)
+│   └── TokenReader.cs (NY)
+└── Program.cs (Endringer)
+
+1. Installer i TaskService.Api:
+dotnet add package System.IdentityModel.Tokens.Jwt
+
+2. Opprett modellen TokenInfo.cs
+Modellen definerer hvilken informasjon vi ønsker å returnere fra tokenleseren.
+
+Den inneholder:
+Header: informasjon fra JWT-headeren.
+Claims: informasjon om tokenets claims, representert som type og verdi.
+
+3. Opprett interfacet ITokenReader.cs
+Opprett mappen Services og filen ITokenReader.cs.
+
+Interfacet definerer hva tokenleseren skal kunne gjøre.
+Husk å importere TaskService.Api.Models i filen.
+
+4. Opprett servicen TokenReader.cs
+Opprett Services/TokenReader.cs.
+
+Denne servicen har ansvaret for å:
+- Sjekke at forespørselen inneholder et Bearer-token.
+- Hente ut selve tokenet.
+- Sjekke at tokenet kan leses.
+- Lese tokenet med JwtSecurityTokenHandler.
+- Hente ut header og claims og returnere dem som TokenInfo.
+
+Dette gjør vi for Separation of Concerns.
+
+5. Opprett AuthController.cs i Controllers
+Opprett /AuthController.cs.
+
+Controlleren skal eksponere endepunktet:
+- GET /auth/token (Du kan velge selv)
+
+Controlleren skal også:
+- Motta HTTP-forespørselen.
+- Hente Authorization-headeren.
+- Kalle ITokenReader for å lese tokenet.
+- Returnere informasjonen fra tokenet eller en passende HTTP-feil.
+
+Controlleren skal ikke selv dekode JWT-tokenet. Den sender denne oppgaven til servicen.
+
+6. Registrer Token-servicen i Program.cs
+Registrerer implementasjonen i Dependency Injection-containeren:
+builder.Services.AddScoped<ITokenReader, TokenReader>();
+
+7. Konfigurer Scalar i Program.cs for Bearer-token
+Vi bruker AddOpenApi() for å lage API-dokumentasjonen og Scalar for å teste API-et.
+
+For at vi skal kunne legge inn et JWT-token i Scalar, må vi konfigurere API-dokumentasjonen til å støtte Bearer-token.
+Vi finner ut hvordan vi gjør dette ved å følge Microsoft sin dokumentasjon:
+https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/customize-openapi?view=aspnetcore-10.0
+
+Der bruker vi en document transformer i Program.cs for å legge til Bearer-konfigurasjonen.
+
+8. Test endepunktet:
+Docker desktop må være åpnet 
+- Kjør docker-compose up. 
+
+- Åpne Scalar i nettleseren.
+    Velg Bearer-autentisering og lim inn et JWT-token. Du kan hente et JWT-token fra:
+    https://www.jwt.io/
+
+    Eller så har jeg "laget" et token. Kopier dette:
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMGZhODk2Mi0yZDYxLTRiODMtOGFlMS0yNWE2YjA5NGI4ZjgiLCJuYW1lIjoiS29kZWhvZGUgRGVsdGFrZXIiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNzkyNDk3NjAwfQ.9PygVL-JUTg3QcefVFq5DoiNZ9OumFbNXgMlG6Q-jC0
+
+    Claims skal være:
+    {
+    "sub": "d0fa8962-2d61-4b83-8ae1-25a6b094b8f8",
+    "name": "Kodehode Deltaker",
+    "admin": true,
+    "iat": 1792497600
+    }
+
+- Test GET /auth/token i Scalar
+Sjekk at responsen leser ut claims.

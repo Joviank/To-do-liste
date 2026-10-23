@@ -1,0 +1,69 @@
+Hvordan sett opp Ingress:
+Filstruktur guide:
+ProsjektNavn
+│
+├── traefik/
+│   └── traefik.yml (NY)
+├── docker-compose.yaml (Endret)
+└── TaskServiceSolution.sln
+
+1. Opprett en traefik.yml
+Her konfigurerer du Traefik, for eksempel hvilke porter den skal lytte på, og hvordan den skal oppdage Docker-containere.
+
+2. Legg til Traefik i docker-compose.yml
+Opprett en egen tjeneste for Traefik. Koble den til Docker-nettverket og konfigurer portene og volumene den trenger.
+
+3. Legg til labels på tjenestene
+Legg til Traefik-labels på api og pgadmin. 
+Labelene forteller Traefik hvilke adresser og regler som skal brukes for å rute forespørsler til tjenestene.
+
+4. Test at du kan bruke Traefik-labels til å nå API-endepunktene, Scalar og pgAdmin via de konfigurerte adressene.
+For eksempel:
+- API: http://api.localhost/tasks
+- Scalar: http://api.localhost/scalar (forutsatt at Scalar er konfigurert på denne ruten)
+- pgAdmin: http://pgadmin.localhost
+
+----------------------------------------------------------------------------------------------------------------------------------
+VALGFRITT, dersom du ønsker å sette opp en frontend
+Filstruktur guide:
+TaskService.Api
+│   │
+│   ├── Controllers/
+│   │   ├── TasksController.cs
+│   │   └── HomeController.cs (Ny)
+│   │
+│   ├── Views/ (ALT NYTT)
+│   │   ├── Home/
+│   │   │   └── Index.cshtml
+│   │   ├── Shared/
+│   │   │   └── _Layout.cshtml
+│   │   └── _ViewStart.cshtml (Potensielt valgfritt)
+│   │
+│   ├── wwwroot/ (ALT NYTT)
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   │
+│   │   └── js/
+│   │       └── app.js
+│   │
+└── └── Program.cs (Endret)
+
+Hvordan sette opp Razor Views i API-et
+1. Opprett HomeController.cs
+Controlleren håndterer HTTP-forespørsler og returnerer Razor Views til nettleseren.
+
+2. Opprett Views-mappen
+Lag Views/Home/Index.cshtml og eventuelle andre views. 
+Her skriver du HTML med Razor-syntaks, slik at du kan kombinere HTML med data fra backend.
+
+3. Opprett wwwroot
+Legg statiske filer som CSS, JavaScript og bilder her. 
+JavaScript kan brukes til å sende HTTP-forespørsler til API-et, mens CSS styrer utseendet.
+
+4. Konfigurer Program.cs
+    - Legg til AddControllersWithViews().
+    - Aktiver statiske filer med app.UseStaticFiles().
+    - Konfigurer routing med app.UseRouting().
+    - Legg til app.MapControllerRoute(...) for å koble URL-er til controllere og actions.
+    
+5. Test at API-applikasjonen viser Razor View

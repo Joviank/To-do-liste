@@ -1,7 +1,25 @@
-const apiUrl = "http://api.localhost/tasks";
+const apiUrl = "/tasks";
+
+// Henter token og legger det til i Authorization-headeren
+function getAuthHeaders(extraHeaders = {}) {
+  const token = localStorage.getItem("token");
+
+  return {
+    ...extraHeaders,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 async function loadTasks() {
-  const response = await fetch(apiUrl);
+  const response = await fetch(apiUrl, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    console.error("Kunne ikke hente tasks");
+    return;
+  }
+
   const tasks = await response.json();
 
   const list = document.getElementById("taskList");
@@ -29,24 +47,37 @@ async function addTask() {
   const input = document.getElementById("taskInput");
   if (!input.value.trim()) return;
 
-  await fetch(apiUrl, {
+  const response = await fetch(apiUrl, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({
       Title: input.value,
     }),
   });
+
+  if (!response.ok) {
+    console.error("Kunne ikke legge til task");
+    return;
+  }
+
   input.value = "";
-  loadTasks();
+  await loadTasks();
 }
 
 async function toggleDone(id) {
-  await fetch(`/tasks/${id}/complete`, {
+  const response = await fetch(`/tasks/${id}/complete`, {
     method: "PATCH",
+    headers: getAuthHeaders(),
   });
-  loadTasks();
+
+  if (!response.ok) {
+    console.error("Kunne ikke oppdatere task");
+    return;
+  }
+
+  await loadTasks();
 }
 
 document.getElementById("addTaskBtn").addEventListener("click", addTask);

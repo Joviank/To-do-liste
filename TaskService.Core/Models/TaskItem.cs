@@ -4,10 +4,13 @@ public class TaskItem
     public string Title { get; set; } = string.Empty;
     public bool IsCompleted { get; set; }
 
-    public TaskItem(string title)
+    public Guid UserId { get; set; }
+
+    public TaskItem(string title, Guid userId)
     {
         Id = Guid.NewGuid();
         Title = title;
+        UserId = userId;
         IsCompleted = false;
     }
 }

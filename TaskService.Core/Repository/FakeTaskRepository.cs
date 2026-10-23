@@ -9,14 +9,14 @@ public class FakeTaskRepository : ITaskRepository
         tasks.Add(task);
     }
 
-    public List<TaskItem> GetAll()
+    public List<TaskItem> GetAll(Guid userId)
     {
-        return tasks.ToList();
+        return tasks.Where(t => t.UserId == userId).ToList();
     }
 
-    public TaskItem? GetById(Guid id)
+    public TaskItem? GetById(Guid id, Guid userId)
     {
-        return tasks.FirstOrDefault(t => t.Id == id);
+        return tasks.FirstOrDefault(t => t.Id == id && t.UserId == userId);
     }
     public void Delete(TaskItem task)
     {
@@ -24,7 +24,11 @@ public class FakeTaskRepository : ITaskRepository
     }
     public void Update(TaskItem task)
     {
-        var existingTask = tasks.First(t => t.Id == task.Id);
+        var existingTask = tasks.First(t => t.Id == task.Id && t.UserId == task.UserId);
+        if (existingTask == null)
+        {
+            throw new KeyNotFoundException("Task was not found");
+        }
         tasks[tasks.IndexOf(existingTask)] = task;
     }
 }

@@ -10,21 +10,21 @@ public class TaskService
         this.repository = repository;
     }
 
-    public TaskItem AddTask(string title)
+    public TaskItem AddTask(string title, Guid userId)
     {
-        var task = new TaskItem(title);
+        var task = new TaskItem(title, userId);
         repository.Add(task);
         return task;
     }
 
-    public List<TaskItem> GetTasks()
+    public List<TaskItem> GetTasks(Guid userId)
     {
-        return repository.GetAll();
+        return repository.GetAll(userId);
     }
 
-    public void CompleteTask(Guid id)
+    public void CompleteTask(Guid id, Guid userId)
     {
-        var task = repository.GetById(id);
+        var task = repository.GetById(id, userId);
 
         if (task == null)
         {
@@ -35,9 +35,9 @@ public class TaskService
         repository.Update(task);
     }
 
-    public void DeleteTask(Guid id)
+    public void DeleteTask(Guid id, Guid userId)
     {
-        var task = repository.GetById(id);
+        var task = repository.GetById(id, userId);
 
         if (task == null)
         {

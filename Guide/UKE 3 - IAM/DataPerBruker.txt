@@ -1,0 +1,123 @@
+Isolere data per bruker
+
+TaskService.Core/
+├── Repository/
+│   ├── FakeTaskRepository.cs  (Endringer)
+│   └── ITaskRepository.cs     (Endringer)
+├── TaskItem.cs                (Endringer)
+└── TaskService.cs             (Endringer)
+
+TaskService.Api/
+├── Controllers/
+│   └── TasksController.cs     (Endringer)
+├── Repository/
+│   └── EfTaskRepository.cs    (Endringer)
+└── Services/
+    ├── ITokenReader.cs        (Endringer)
+    └── TokenReader.cs         (Endringer)
+
+
+1. Oppdater TaskItem.cs
+Legg til bruker-ID:
+    public Guid UserId { get; set; }
+
+Oppdater konstruktøren slik at den tar imot Guid userId og setter UserId.
+
+
+2. Oppdater ITaskRepository.cs og FakeTaskRepository.cs
+
+- Oppdater GetAll() til å ta imot Guid userId.
+- Oppdater GetById() til å ta imot både Guid id og Guid userId.
+- Filtrer oppgavene slik at brukeren bare får tilgang til sine egne oppgaver.
+
+
+3. Oppdater TaskService.cs
+Oppdater metodene slik at de tar imot og videresender Guid userId:
+
+- AddTask()
+- GetTasks()
+- CompleteTask()
+- DeleteTask()
+
+Når en oppgave fullføres eller slettes, må den først hentes med både oppgave-ID og bruker-ID.
+
+4. Oppdater datatilgangen i EfTaskRepository.cs
+
+- Filtrer GetAll() med .Where(t => t.UserId == userId).
+- Filtrer GetById() på både oppgave-ID og bruker-ID.
+- Sørg for at nye oppgaver lagres med riktig UserId.
+
+
+5. Oppdater ITokenReader.cs og TokenReader.cs
+
+- Behold eksisterende ReadToken().
+- Legg til GetUserId() som henter sub-claimen fra tokenet.
+- Bruk Guid.TryParse() for å kontrollere at bruker-ID-en er en gyldig UUID.
+
+
+6. Oppdater TasksController.cs
+
+- Hent tokenet fra Authorization-headeren.
+- Bruk ITokenReader til å hente userId.
+- Send userId videre til TaskService.
+- Returner 401 Unauthorized dersom bruker-ID-en mangler eller er ugyldig.
+
+Hold controlleren enkel. Logikken for å lese tokenet og hente claimen skal ligge i TokenReader.
+
+7. Åpne terminal og gå inn i TaskService.Api, deretter opprett en EF Core-migrering
+dotnet ef migrations add AddUserIdToTask
+
+8. Bygg og kjør applikasjonen
+docker compose up --build
+
+Tilpass kommandoen dersom dere må spesifisere prosjekt eller startup-prosjekt.
+Hvis API-et ikke starter, prøv eventuelt å stoppe og bygge containerne på nytt:
+docker compose down
+docker compose build --no-cache
+docker compse up
+
+
+9. Lag testtoken med en gyldig GUID
+
+VIKTIG: Standardtokenet på jwt.io fungerer IKKE. Det har "sub": "1234567890",
+som ikke er en gyldig GUID. Dette er hvis dere bruker "!Guid.TryParse(userIdClaim.Value, out var userId)" i GetUserId. Da returnerer GetUserId() null, og API-et svarer med 401 Unauthorized, selv om tokenet ellers ser riktig ut.
+
+Slik lager du et token som fungerer:
+1. Gå til jwt.io.
+2. Endre payloaden slik at sub er en GUID, for eksempel:
+
+    {
+      "sub": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "John Doe",
+      "admin": true,
+      "iat": 1516239022
+    }
+
+3. Kopier det nye tokenet.
+
+Du kan lage nye GUID-er med for eksempel Guid.NewGuid() i C#, eller en GUID-generator på nettet:
+https://www.uuidgenerator.net/guid
+
+Bruk samme GUID hver gang for samme testbruker. Oppgavene lagres per UserId,
+så en ny GUID betyr en ny bruker uten oppgaver.
+
+
+10. Test dataseparasjonen
+
+- Bruk to forskjellige testtoken med hver sin GUID i sub-claimen (se steg 10).
+- Opprett forskjellige oppgaver med hvert token.
+- Kontroller at hver bruker bare ser sine egne oppgaver.
+- Test at en bruker ikke kan fullføre eller slette en annen brukers oppgaver.
+- Åpne pgAdmin og kontroller at oppgavene har forskjellige UserId-verdier.
+- Kjør unit-testene og kontroller at de passerer.
+
+
+Merk: TokenReader dekoder tokenet, men validerer ikke signaturen. Vi tester bare dataseparasjon med testtoken.
+
+OPTIONAL HVIS DERE HAR FRONTEND: 
+
+11. Legg tokenet inn i nettleseren:
+- Høyreklikk på siden, velg Inspiser og gå til Console.
+- Kjør (med ditt eget token, uten "Bearer " foran):
+    localStorage.setItem("token", "LIM_INN_TOKENET_HER");
+- Last inn siden på nytt.
