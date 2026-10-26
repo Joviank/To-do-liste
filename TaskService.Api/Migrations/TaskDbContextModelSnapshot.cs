@@ -42,6 +42,25 @@ namespace TaskService.Api.Migrations
 
                     b.ToTable("Tasks");
                 });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.Property<Guid>("userId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("userId");
+
+                    b.ToTable("Users");
+                });
 #pragma warning restore 612, 618
         }
     }

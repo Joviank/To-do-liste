@@ -6,4 +6,5 @@ public interface ITokenReader
     TokenInfo? ReadToken(string token);
 
     Guid? GetUserId(string authHeader);
+    string CreateToken(User user, string key);
 }

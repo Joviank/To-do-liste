@@ -1,5 +1,8 @@
 using TaskService.Api.Models;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace TaskService.Api.Services;
 
@@ -68,5 +71,24 @@ public class TokenReader : ITokenReader
             return null;
         }
         return userId;
+    }
+
+    public string CreateToken(User user, string key)
+    {
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.userId.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.Username)
+        };
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.UtcNow.AddDays(3),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
