@@ -1,0 +1,29 @@
+1. Opprett en ssh-nøkkel:
+ssh-keygen -t ed25519 -C "ToDoList"
+
+2. Finn din Public key:
+cat ~/.ssh/id_ed25519.pub
+
+3. Opprett en server på hetzner
+
+4. Koble til denne server:
+ssh root@(ip går her)
+
+5. Manuelt oppdater systemet:
+apt update && apt upgrade -y
+
+6. installer git, docker og docker compose:
+apt install git -y
+apt install docker.io -y
+apt install docker-compose-v2 -y
+
+7. Hent prosjektet fra GitHub:
+git clone https://github.com/ditt/To-do-listeProsjekt.git
+cd To-do-listeProsjekt
+
+8. Start API-et, databasen og Traefik:
+docker compose up -d --build
+
+9. Test i nettleseren:
+http://(ip)/health
+http://(ip)/scalar

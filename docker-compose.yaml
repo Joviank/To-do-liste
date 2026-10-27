@@ -8,7 +8,7 @@ services:
       # Lar Traefik oppdage Docker-containere
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # Traefik-konfigurasjonen
-      - ./traefik/Traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./Traefik/Traefik.yml:/etc/traefik/traefik.yml:ro
 
   api:
     build:
@@ -27,7 +27,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`api.localhost`)"
+      - "traefik.http.routers.api.rule=PathPrefix(`/`)"
       - "traefik.http.routers.api.entrypoints=web"
       - "traefik.http.services.api.loadbalancer.server.port=80"
 
