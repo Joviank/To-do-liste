@@ -482,3 +482,11 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# terraform
+_.tfstate
+_.tfstate.backup
+.terraform.lock.hcl
+_.tfvars
+_.auto.tfvars
+.terraform/
