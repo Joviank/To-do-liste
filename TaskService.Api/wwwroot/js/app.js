@@ -21,44 +21,63 @@ async function loadTasks() {
   }
 
   const tasks = await response.json();
-
   const list = document.getElementById("taskList");
+
   list.innerHTML = "";
 
-  for (const task of tasks) {
+  tasks.forEach((task) => {
     const li = document.createElement("li");
-
     const span = document.createElement("span");
-    span.style.textDecoration = task.isDone ? "line-through" : "none";
+
     span.textContent = task.title;
 
-    const button = document.createElement("button");
-    button.textContent = task.isDone ? "Undo" : "Done";
+    if (task.isCompleted) {
+      span.classList.add("completed");
+    }
+    const completeButton = document.createElement("button");
+    completeButton.textContent = task.isCompleted ? "Undo" : "Done";
+    completeButton.classList.add("complete-button");
+    completeButton.addEventListener("click", () => {
+      toggleDone(task.id);
+    });
 
-    button.addEventListener("click", () => toggleDone(task.id));
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.classList.add("delete-button");
+    deleteButton.addEventListener("click", () => {
+      deleteTask(task.id);
+    });
 
     li.appendChild(span);
-    li.appendChild(button);
+    li.appendChild(completeButton);
+    li.appendChild(deleteButton);
+
     list.appendChild(li);
-  }
+  });
 }
 
 async function addTask() {
   const input = document.getElementById("taskInput");
-  if (!input.value.trim()) return;
 
+  if (!input.value.trim()) {
+    return;
+  }
+
+  const token = localStorage.getItem("token");
   const response = await fetch(apiUrl, {
     method: "POST",
-    headers: getAuthHeaders({
+    headers: {
       "Content-Type": "application/json",
-    }),
+
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({
-      Title: input.value,
+      title: input.value,
     }),
   });
 
   if (!response.ok) {
-    console.error("Kunne ikke legge til task");
+    console.error("Kunne ikke opprette en oppgave");
     return;
   }
 
@@ -67,19 +86,55 @@ async function addTask() {
 }
 
 async function toggleDone(id) {
-  const response = await fetch(`/tasks/${id}/complete`, {
+  const token = localStorage.getItem("token");
+
+  // /tasks/{id}/complete
+  const response = await fetch(`${apiUrl}/${id}/complete`, {
     method: "PATCH",
-    headers: getAuthHeaders(),
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (!response.ok) {
-    console.error("Kunne ikke oppdatere task");
+    console.error("Kunne ikke endre oppgaven");
     return;
   }
 
   await loadTasks();
 }
 
-document.getElementById("addTaskBtn").addEventListener("click", addTask);
+async function deleteTask(id) {
+  const token = localStorage.getItem("token");
+
+  // /tasks/{id}
+  const response = await fetch(`${apiUrl}/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    console.error("Kunne ikke slette oppgaven");
+    return;
+  }
+
+  await loadTasks();
+}
+
+const themeButton = document.getElementById("themeButton");
+
+themeButton.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+
+  const darkModeEnabled = document.body.classList.contains("dark-mode");
+
+  if (darkModeEnabled) {
+    themeButton.textContent = "Light mode";
+  } else {
+    themeButton.textContent = "Dark mode";
+  }
+});
 
 loadTasks();
